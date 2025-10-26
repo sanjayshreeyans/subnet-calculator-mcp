@@ -40,12 +40,44 @@ jobs:
       - name: Ensure formatting with black
         run: uv run black --check src tests
 
+      - name: Check published version
+        id: check_version
+        run: |
+          python <<'PY'
+          import os
+          import tomllib
+          import urllib.error
+          import urllib.request
+
+          with open("pyproject.toml", "rb") as handle:
+              project = tomllib.load(handle)["project"]
+
+          package = project["name"]
+          version = project["version"]
+          url = f"https://pypi.org/pypi/{package}/{version}/json"
+
+          exists = "false"
+          try:
+              urllib.request.urlopen(url)
+          except urllib.error.HTTPError as exc:
+              if exc.code != 404:
+                  raise
+          else:
+              exists = "true"
+
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as fh:
+              fh.write(f"exists={exists}\n")
+              fh.write(f"version={version}\n")
+          PY
+
       - name: Build distributions
+        if: steps.check_version.outputs.exists == 'false'
         run: |
           rm -rf dist
           uv build
 
       - name: Publish to PyPI
+        if: steps.check_version.outputs.exists == 'false'
         env:
           UV_PUBLISH_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
         run: uv publish dist/subnet_calculator_mcp-*.tar.gz dist/subnet_calculator_mcp-*-py3-none-any.whl
