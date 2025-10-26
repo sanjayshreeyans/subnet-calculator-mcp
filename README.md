@@ -1,5 +1,5 @@
 # Subnet Calculator MCP Server
-
+[![CI](https://github.com/sanjayshreeyans/subnet-calculator-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/sanjayshreeyans/subnet-calculator-mcp/actions/workflows/ci.yml)
 `subnet-calculator-mcp` is a production-ready [Model Context Protocol](https://modelcontextprotocol.io/) server that delivers reliable IPv4 subnet planning utilities to LLM-powered assistants. It eliminates tedious manual math by exposing fast, well-tested tools for subnet sizing, wildcard mask generation, gateway selection, and host validation.
 
 ## Why Use This Server?
