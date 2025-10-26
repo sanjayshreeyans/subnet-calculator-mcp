@@ -39,11 +39,20 @@ dev = [
     "mypy>=1.0.0",
 ]
 
+[dependency-groups]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+    "black>=23.0.0",
+    "ruff>=0.1.0",
+    "mypy>=1.0.0",
+]
+
 [project.urls]
-Homepage = "https://github.com/yourusername/subnet-calculator-mcp"
-Documentation = "https://github.com/yourusername/subnet-calculator-mcp#readme"
-Repository = "https://github.com/yourusername/subnet-calculator-mcp"
-Issues = "https://github.com/yourusername/subnet-calculator-mcp/issues"
+Homepage = "https://github.com/sanjayshreeyans/subnet-calculator-mcp"
+Documentation = "https://github.com/sanjayshreeyans/subnet-calculator-mcp#readme"
+Repository = "https://github.com/sanjayshreeyans/subnet-calculator-mcp"
+Issues = "https://github.com/sanjayshreeyans/subnet-calculator-mcp/issues"
 
 [project.scripts]
 subnet-calculator-mcp = "subnet_calculator_mcp.server:main"
