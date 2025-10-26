@@ -1,0 +1,34 @@
+name: CI
+
+on:
+  push:
+    branches: ["main", "feature/**", "release/**"]
+  pull_request:
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v2
+        with:
+          python-version: "3.12"
+
+      - name: Sync project dependencies (including dev tools)
+        run: uv sync --group dev
+
+      - name: Run unit tests
+        run: uv run pytest
+
+      - name: Type check with mypy
+        run: uv run mypy src
+
+      - name: Lint with ruff
+        run: uv run ruff check src tests
+
+      - name: Ensure formatting with black
+        run: uv run black --check src tests
