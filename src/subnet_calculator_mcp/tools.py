@@ -23,6 +23,7 @@ from .validators import (
 
 mcp = FastMCP("subnet-calculator")
 
+
 @mcp.tool()
 async def calculate_subnet(
     network_base: str,
@@ -34,7 +35,11 @@ async def calculate_subnet(
         {
             "network_base": network_base,
             "hosts_needed": hosts_needed,
-            "return_format": return_format.lower() if isinstance(return_format, str) else return_format,
+            "return_format": (
+                return_format.lower()
+                if isinstance(return_format, str)
+                else return_format
+            ),
         }
     )
     return compute_subnet_info(

@@ -48,6 +48,4 @@ def test_subnet_from_mask_invalid_mask() -> None:
 def test_nth_usable_ip_request_invalid_position() -> None:
     """Positions below 1 should fail validation."""
     with pytest.raises(ValueError):
-        NthUsableIpRequest.model_validate(
-            {"network": "10.0.0.0/24", "position": 0}
-        )
+        NthUsableIpRequest.model_validate({"network": "10.0.0.0/24", "position": 0})

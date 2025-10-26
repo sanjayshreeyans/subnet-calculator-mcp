@@ -27,4 +27,8 @@ async def test_mcp_registry_contains_expected_tool() -> None:
     """FastMCP instance should expose the configured tools."""
     tools = await mcp.list_tools()
     names = {tool.name for tool in tools}
-    assert {"calculate_subnet", "calculate_wildcard_mask", "validate_ip_in_subnet"}.issubset(names)
+    assert {
+        "calculate_subnet",
+        "calculate_wildcard_mask",
+        "validate_ip_in_subnet",
+    }.issubset(names)

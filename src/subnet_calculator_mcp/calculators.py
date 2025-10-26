@@ -82,7 +82,9 @@ def _calculate_prefix_for_hosts(hosts_needed: int) -> int:
     raise ValueError("Unable to determine prefix for requested host count")
 
 
-def _normalize_network(base_ip: ipaddress.IPv4Address, prefix: int) -> ipaddress.IPv4Network:
+def _normalize_network(
+    base_ip: ipaddress.IPv4Address, prefix: int
+) -> ipaddress.IPv4Network:
     """Create a network aligned to the correct boundary for the prefix."""
     candidate = ipaddress.IPv4Network((base_ip, prefix), strict=False)
     if candidate.prefixlen < MIN_PREFIX:
@@ -190,15 +192,15 @@ def validate_ip_in_subnet(
 
     is_network_address = is_member and ip_address == normalized_network.network_address
     has_broadcast = normalized_network.prefixlen < 31
-    is_broadcast_address = is_member and has_broadcast and (
-        ip_address == normalized_network.broadcast_address
+    is_broadcast_address = (
+        is_member
+        and has_broadcast
+        and (ip_address == normalized_network.broadcast_address)
     )
 
-    is_usable = (
-        is_member
-        and not is_network_address
-        and not is_broadcast_address
-    ) or (normalized_network.prefixlen >= 31 and is_member)
+    is_usable = (is_member and not is_network_address and not is_broadcast_address) or (
+        normalized_network.prefixlen >= 31 and is_member
+    )
 
     likely_gateway: Optional[str] = None
     if return_gateway and summary.first_usable:
