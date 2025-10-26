@@ -1,0 +1,132 @@
+"""MCP tool implementations for subnet calculations."""
+
+from __future__ import annotations
+
+from typing import Any, Dict
+
+from mcp.server.fastmcp import FastMCP
+
+from .calculators import (
+    calculate_subnet_from_mask as compute_subnet_from_mask,
+    calculate_subnet_info as compute_subnet_info,
+    calculate_wildcard_mask as compute_wildcard_mask,
+    get_nth_usable_ip as compute_nth_usable_ip,
+    validate_ip_in_subnet as compute_validate_ip,
+)
+from .validators import (
+    NthUsableIpRequest,
+    SubnetCalculationRequest,
+    SubnetFromMaskRequest,
+    ValidateIpRequest,
+    WildcardMaskRequest,
+)
+
+mcp = FastMCP("subnet-calculator")
+
+@mcp.tool()
+async def calculate_subnet(
+    network_base: str,
+    hosts_needed: int,
+    return_format: str = "detailed",
+) -> Dict[str, Any]:
+    """Calculate subnet details given a base IP and required hosts."""
+    request = SubnetCalculationRequest.model_validate(
+        {
+            "network_base": network_base,
+            "hosts_needed": hosts_needed,
+            "return_format": return_format.lower() if isinstance(return_format, str) else return_format,
+        }
+    )
+    return compute_subnet_info(
+        request.network_base,
+        request.hosts_needed,
+        request.return_format,
+    )
+
+
+@mcp.tool()
+async def calculate_wildcard_mask(
+    ip_address: str,
+    cidr_prefix: int,
+    include_ospf_command: bool = True,
+) -> Dict[str, Any]:
+    """Generate OSPF wildcard mask details for a subnet."""
+    request = WildcardMaskRequest.model_validate(
+        {
+            "ip_address": ip_address,
+            "cidr_prefix": cidr_prefix,
+            "include_ospf_command": include_ospf_command,
+        }
+    )
+    return compute_wildcard_mask(
+        request.ip_address,
+        request.cidr_prefix,
+        request.include_ospf_command,
+    )
+
+
+@mcp.tool()
+async def validate_ip_in_subnet(
+    ip_address: str,
+    network: str,
+    return_gateway: bool = True,
+) -> Dict[str, Any]:
+    """Validate that an IP address belongs to a subnet and provide context."""
+    request = ValidateIpRequest.model_validate(
+        {
+            "ip_address": ip_address,
+            "network": network,
+            "return_gateway": return_gateway,
+        }
+    )
+    return compute_validate_ip(
+        request.ip_address,
+        request.network,
+        request.return_gateway,
+    )
+
+
+@mcp.tool()
+async def calculate_subnet_from_mask(
+    ip_address: str,
+    subnet_mask: str,
+) -> Dict[str, Any]:
+    """Calculate network information from an IP address and subnet mask."""
+    request = SubnetFromMaskRequest.model_validate(
+        {
+            "ip_address": ip_address,
+            "subnet_mask": subnet_mask,
+        }
+    )
+    return compute_subnet_from_mask(
+        request.ip_address,
+        request.subnet_mask,
+    )
+
+
+@mcp.tool()
+async def get_nth_usable_ip(
+    network: str,
+    position: int,
+) -> Dict[str, Any]:
+    """Return the Nth usable IP address in a subnet."""
+    request = NthUsableIpRequest.model_validate(
+        {
+            "network": network,
+            "position": position,
+        }
+    )
+    return compute_nth_usable_ip(
+        request.network,
+        request.position,
+    )
+
+
+__all__ = [
+    "mcp",
+    "calculate_subnet",
+    "calculate_wildcard_mask",
+    "validate_ip_in_subnet",
+    "calculate_subnet_from_mask",
+    "get_nth_usable_ip",
+]

@@ -1,0 +1,127 @@
+"""Pydantic schema definitions for MCP tool inputs."""
+
+from __future__ import annotations
+
+import ipaddress
+from typing import Literal
+
+from pydantic import BaseModel, Field, ValidationInfo, field_validator
+
+from .calculators import MAX_HOSTS
+
+
+class SubnetCalculationRequest(BaseModel):
+    """Input schema for subnet calculation requests."""
+
+    network_base: ipaddress.IPv4Address = Field(..., description="Base IP address")
+    hosts_needed: int = Field(
+        ...,
+        ge=0,
+        le=MAX_HOSTS,
+        description="Number of usable hosts required",
+    )
+    return_format: Literal["detailed", "simple"] = Field(
+        default="detailed",
+        description="Response format",
+    )
+
+    model_config = {
+        "extra": "forbid",
+    }
+
+    @field_validator("network_base")
+    @classmethod
+    def validate_network_base(
+        cls, value: str | ipaddress.IPv4Address, _: ValidationInfo
+    ) -> ipaddress.IPv4Address:
+        return ipaddress.IPv4Address(value)
+
+
+class WildcardMaskRequest(BaseModel):
+    """Input schema for wildcard mask calculations."""
+
+    ip_address: ipaddress.IPv4Address
+    cidr_prefix: int = Field(..., ge=0, le=32)
+    include_ospf_command: bool = Field(default=True, description="Include OSPF command")
+
+    model_config = {
+        "extra": "forbid",
+    }
+
+    @field_validator("ip_address")
+    @classmethod
+    def validate_ip(
+        cls, value: str | ipaddress.IPv4Address, _: ValidationInfo
+    ) -> ipaddress.IPv4Address:
+        return ipaddress.IPv4Address(value)
+
+
+class ValidateIpRequest(BaseModel):
+    """Input schema for IP validation within a subnet."""
+
+    ip_address: ipaddress.IPv4Address
+    network: ipaddress.IPv4Network
+    return_gateway: bool = Field(default=True)
+
+    model_config = {
+        "extra": "forbid",
+    }
+
+    @field_validator("ip_address", mode="before")
+    @classmethod
+    def validate_ip_address(
+        cls, value: str | ipaddress.IPv4Address, _: ValidationInfo
+    ) -> ipaddress.IPv4Address:
+        return ipaddress.IPv4Address(value)
+
+    @field_validator("network", mode="before")
+    @classmethod
+    def validate_network(
+        cls, value: str | ipaddress.IPv4Network, _: ValidationInfo
+    ) -> ipaddress.IPv4Network:
+        return ipaddress.IPv4Network(value, strict=False)
+
+
+class SubnetFromMaskRequest(BaseModel):
+    """Input schema for reverse subnet calculations."""
+
+    ip_address: ipaddress.IPv4Address
+    subnet_mask: ipaddress.IPv4Address
+
+    model_config = {
+        "extra": "forbid",
+    }
+
+    @field_validator("ip_address", mode="before")
+    @classmethod
+    def validate_ip(
+        cls, value: str | ipaddress.IPv4Address, _: ValidationInfo
+    ) -> ipaddress.IPv4Address:
+        return ipaddress.IPv4Address(value)
+
+    @field_validator("subnet_mask", mode="before")
+    @classmethod
+    def validate_subnet_mask(
+        cls, value: str | ipaddress.IPv4Address, _: ValidationInfo
+    ) -> ipaddress.IPv4Address:
+        mask = ipaddress.IPv4Address(value)
+        ipaddress.IPv4Network(("0.0.0.0", str(mask)))
+        return mask
+
+
+class NthUsableIpRequest(BaseModel):
+    """Input schema for retrieving the Nth usable IP address."""
+
+    network: ipaddress.IPv4Network
+    position: int = Field(..., ge=1)
+
+    model_config = {
+        "extra": "forbid",
+    }
+
+    @field_validator("network")
+    @classmethod
+    def validate_network(
+        cls, value: str | ipaddress.IPv4Network, _: ValidationInfo
+    ) -> ipaddress.IPv4Network:
+        return ipaddress.IPv4Network(value, strict=False)
