@@ -14,7 +14,7 @@ dependencies = [
 ]
 license = { text = "MIT" }
 authors = [
-    { name = "Your Name", email = "your.email@example.com" }
+    { name = "Sanjay Shreeyans Javangula", email = "sanjayshreeyans@gmail.com" }
 ]
 keywords = ["mcp", "subnet", "calculator", "networking", "cisco", "ospf"]
 classifiers = [
