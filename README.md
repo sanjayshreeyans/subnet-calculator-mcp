@@ -1,177 +1,131 @@
-# MCP Server template for better AI Coding
+# Subnet Calculator MCP Server
 
-> Inspired by [MCP Official Tutorial](https://modelcontextprotocol.io/tutorials/building-mcp-with-llms)
+`subnet-calculator-mcp` is a production-ready [Model Context Protocol](https://modelcontextprotocol.io/) server that delivers reliable IPv4 subnet planning utilities to LLM-powered assistants. It eliminates tedious manual math by exposing fast, well-tested tools for subnet sizing, wildcard mask generation, gateway selection, and host validation.
 
-## Overview
+## Why Use This Server?
 
-This template provides a streamlined foundation for building Model Context Protocol (MCP) servers in Python. It's designed to make AI-assisted development of MCP tools easier and more efficient.
+- 🔢 Convert host requirements into accurate subnet masks and CIDR prefixes
+- 🌐 Produce Cisco-friendly OSPF wildcard masks and network statements
+- ✅ Verify whether an IP belongs to a subnet, including gateway hints and address position
+- 🔄 Reverse-calculations from dotted masks or find the Nth usable address instantly
+- ⚙️ Built on the official Python MCP SDK with thorough type hints, validation, and tests
 
-## Features
+## Install & Run
 
-- Ready-to-use MCP server implementation
-- Configurable transport modes (stdio, SSE)
-- Example weather service integration (NWS API)
-- Clean, well-documented code structure
-- Minimal dependencies
-- **Embedded MCP specifications and documentation** for improved AI tool understanding
+The package is published on PyPI: https://pypi.org/project/subnet-calculator-mcp/
 
-## Cursor Rules Integration
-
-This project uses Cursor Rules for improved AI coding assistance, with patterns from [Awesome Cursor Rules](https://github.com/PatrickJS/awesome-cursorrules).
-
-- **Clean Code Guidelines**: Built-in clean code rules help maintain consistency and quality
-- **Enhanced AI Understanding**: Rules provide context that helps AI assistants generate better code
-- **Standardized Patterns**: Follow established best practices for MCP server implementation
-
-Cursor Rules help both AI coding assistants and human developers maintain high code quality standards and follow best practices.
-
-## Integrated MCP Documentation
-
-This template includes comprehensive MCP documentation directly in the project:
-
-- **Complete MCP Specification** (`protocals/mcp.md`): The full Model Context Protocol specification that defines how AI models can interact with external tools and resources. This helps AI assistants understand MCP concepts and implementation details without requiring external references.
-
-- **Python SDK Guide** (`protocals/sdk.md`): Detailed documentation for the MCP Python SDK, making it easier for AI tools to provide accurate code suggestions and understand the library's capabilities.
-
-- **Example Implementation** (`protocals/example_weather.py`): A practical weather service implementation demonstrating real-world MCP server patterns and best practices.
-
-Having these resources embedded in the project enables AI coding assistants to better understand MCP concepts and provide more accurate, contextually relevant suggestions during development.
-
-## Requirements
-
-- Python 3.12+
-- Dependencies:
-  - `mcp>=1.4.1`
-  - `httpx>=0.28.1`
-  - `starlette>=0.46.1`
-  - `uvicorn>=0.34.0`
-
-## Getting Started
-
-### Installation
-
-1. Clone this repository:
-   ```bash
-   git clone https://github.com/yourusername/mcp-server-python-template.git
-   cd mcp-server-python-template
-   ```
-
-2. Create a virtual environment and install dependencies:
-   ```bash
-   python -m venv .venv
-   source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-   pip install -e .
-   ```
-
-### Running the Example Server
-
-The template includes a weather service example that demonstrates how to build MCP tools:
+### Install with pip
 
 ```bash
-# Run with stdio transport (for CLI tools)
-python server.py --transport stdio
-
-# Run with SSE transport (for web applications)
-python server.py --transport sse --host 0.0.0.0 --port 8080
+pip install subnet-calculator-mcp
+python -m subnet_calculator_mcp.server
 ```
 
-## Creating Your Own MCP Tools
+### Run instantly (no install)
 
-To create your own MCP tools:
+```bash
+uvx subnet-calculator-mcp
+```
 
-1. Import the necessary components from `mcp`:
-   ```python
-   from mcp.server.fastmcp import FastMCP
-   ```
+## Client Configuration
 
-2. Initialize your MCP server with a namespace:
-   ```python
-   mcp = FastMCP("your-namespace")
-   ```
+### Claude Desktop / Claude for Windows
 
-3. Define your tools using the `@mcp.tool()` decorator:
-   ```python
-   @mcp.tool()
-   async def your_tool_function(param1: str, param2: int) -> str:
-       """
-       Your tool description.
-       
-       Args:
-           param1: Description of param1
-           param2: Description of param2
-         # Subnet Calculator MCP Server
+Add the server to `claude_desktop_config.json`.
 
-         A Model Context Protocol (MCP) server that provides subnet calculation, IP validation, and OSPF wildcard mask generation for AI assistants.
+**macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
 
-         ## Features
+**Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
 
-         - 🔢 Calculate subnet information from host requirements
-         - 🌐 Generate OSPF wildcard masks
-         - ✅ Validate IP addresses within subnets
-         - 🔄 Reverse subnet calculations from masks
-         - ⚡ Sub-100&nbsp;ms response times
-         - 💯 100% accuracy on subnet math (verified through unit tests)
+```json
+{
+  "mcpServers": {
+    "subnet-calculator": {
+      "command": "uvx",
+      "args": ["subnet-calculator-mcp"]
+    }
+  }
+}
+```
 
-         ## Installation
+If you installed via `uv tool install` or `pip`, change the command to `"subnet-calculator-mcp"` and omit `args`.
 
-         ### Option 1: Use with uvx (No Installation Required)
+### Generic `mcp.json`
 
-         ```bash
-         uvx subnet-calculator-mcp
-         ```
+Many editors (Cursor, Windsurf, etc.) use an `mcp.json` file. Add the following entry:
 
-         ### Option 2: Install Permanently
+```json
+{
+  "subnet-calculator": {
+    "command": "uvx",
+    "args": ["subnet-calculator-mcp"],
+    "env": {}
+  }
+}
+```
 
-         ```bash
-         uv tool install subnet-calculator-mcp
-         ```
+Set `command` to `"subnet-calculator-mcp"` if the binary is installed globally.
 
-         ## Usage with Claude Desktop
+## Tool Reference
 
-         Add the server to your Claude Desktop configuration.
+### `calculate_subnet`
+- **Inputs**: `network_base` (IPv4 address), `hosts_needed` (int), optional `return_format` (`"detailed"` or `"simple"`).
+- **Returns**: CIDR prefix, dotted mask, wildcard mask, usable range, broadcast, binary representations, total/usable host counts.
+- **Use it for**: deriving the smallest subnet that can host the requested number of usable addresses.
 
-         **macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`  
-         **Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
+### `calculate_wildcard_mask`
+- **Inputs**: `ip_address` (any IP in the subnet), `cidr_prefix` (0–32), optional `include_ospf_command` (bool).
+- **Returns**: network address, mask, wildcard mask, binary wildcard string, and optional `network ... area 0` statement.
+- **Use it for**: creating OSPF configurations or ACLs that rely on wildcard masks.
 
-         ```json
-         {
-           "mcpServers": {
-             "subnet-calculator": {
-               "command": "uvx",
-               "args": ["subnet-calculator-mcp"]
-             }
-           }
-         }
-         ```
+### `validate_ip_in_subnet`
+- **Inputs**: `ip_address`, `network` (CIDR string), optional `return_gateway` (bool).
+- **Returns**: membership flag, mask, prefix, network/broadcast flags, usability, likely gateway, position index, and remaining usable addresses.
+- **Use it for**: quickly verifying assignments and identifying first-hop router addresses.
 
-         If you installed the package with `uv tool install`, update the command to `"subnet-calculator-mcp"` and remove `args`.
+### `calculate_subnet_from_mask`
+- **Inputs**: `ip_address`, `subnet_mask` (dotted decimal).
+- **Returns**: network boundary, prefix, wildcard mask, usable range, broadcast, and host counts.
+- **Use it for**: analysing legacy configurations that provide dotted masks instead of CIDR notation.
 
-         ## Available Tools
+### `get_nth_usable_ip`
+- **Inputs**: `network` (CIDR string), `position` (1-based index).
+- **Returns**: IP address at that position, whether it is last usable, total usable hosts, and associated network address.
+- **Use it for**: allocating deterministic host positions (first server, second router, etc.).
 
-         - **calculate_subnet** – Derive full subnet details from a base IP and host requirement.
-         - **calculate_wildcard_mask** – Generate wildcard masks and optional OSPF statements.
-         - **validate_ip_in_subnet** – Confirm IP membership and deliver subnet insights.
-         - **calculate_subnet_from_mask** – Reverse engineer network information from an IP and mask.
-         - **get_nth_usable_ip** – Retrieve the Nth usable host address quickly.
+Example invocation:
 
-         ## Development
+```json
+{
+  "tool": "calculate_subnet",
+  "arguments": {
+    "network_base": "172.16.0.16",
+    "hosts_needed": 14
+  }
+}
+```
 
-         ```bash
-         # Clone the repository
-         git clone https://github.com/yourusername/subnet-calculator-mcp
-         cd subnet-calculator-mcp
+## Development Workflow
 
-         # Install dependencies
-         uv sync
+```bash
+git clone https://github.com/sanjayshreeyans/subnet-calculator-mcp.git
+cd subnet-calculator-mcp
 
-         # Run tests
-         uv run pytest
+# Install dependencies (dev extras include pytest, mypy, ruff, black)
+uv sync --group dev
 
-         # Build package
-         uv build
-         ```
+# Run the automated test suite
+uv run --with .[dev] pytest
 
-         ## License
+# Type-check, lint, and format
+uv run --with mypy mypy src
+uv run --with ruff ruff check src tests
+uv run --with black black src tests
 
-         MIT License – see `LICENSE` for details.
+# Build distribution artifacts
+uv build
+```
 
+## License
+
+MIT License – see `LICENSE` for details.

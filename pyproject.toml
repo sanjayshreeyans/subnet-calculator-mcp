@@ -4,8 +4,8 @@ build-backend = "hatchling.build"
 
 [project]
 name = "subnet-calculator-mcp"
-version = "0.1.0"
-description = "MCP server for subnet calculations, IP validation, and OSPF wildcard mask generation"
+version = "0.1.1"
+description = "IPv4 subnet calculator MCP server for host planning, wildcard masks, and IP validation"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
