@@ -23,7 +23,7 @@
 **Architecture:**
 - ⚙️ Built on the official Python MCP SDK with thorough type hints, validation, and tests
 - 🧮 Uses `networkx` for graph-based topology analysis and shortest-path routing simulation
-- 🎯 Perfect for CyberPatriot network configuration and troubleshooting scenarios
+- 🎯 Perfect for network configuration and troubleshooting scenarios
 
 ## Install & Run
 
