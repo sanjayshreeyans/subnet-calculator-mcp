@@ -2,22 +2,34 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 from mcp.server.fastmcp import FastMCP
 
 from .calculators import (
+    calculate_configuration_order as compute_configuration_order,
+    calculate_route_table as compute_route_table,
     calculate_subnet_from_mask as compute_subnet_from_mask,
     calculate_subnet_info as compute_subnet_info,
+    calculate_vlan_assignments as compute_vlan_assignments,
     calculate_wildcard_mask as compute_wildcard_mask,
+    detect_ip_conflicts as compute_ip_conflicts,
     get_nth_usable_ip as compute_nth_usable_ip,
+    validate_gateway_logic as compute_gateway_logic,
     validate_ip_in_subnet as compute_validate_ip,
+    validate_routing_reachability as compute_routing_reachability,
 )
 from .validators import (
+    ConfigOrderRequest,
+    DetectIPConflictsRequest,
     NthUsableIpRequest,
+    RouteTableRequest,
     SubnetCalculationRequest,
     SubnetFromMaskRequest,
+    ValidateGatewayRequest,
     ValidateIpRequest,
+    ValidateRoutingReachabilityRequest,
+    VlanAssignmentRequest,
     WildcardMaskRequest,
 )
 
@@ -127,6 +139,99 @@ async def get_nth_usable_ip(
     )
 
 
+@mcp.tool()
+async def detect_ip_conflicts(
+    ip_assignments: List[Dict[str, Any]],
+) -> Dict[str, Any]:
+    """Detects IP address conflicts and subnet violations from a list of assignments."""
+    request = DetectIPConflictsRequest.model_validate(
+        {"ip_assignments": ip_assignments}
+    )
+    return compute_ip_conflicts(
+        [assignment.model_dump() for assignment in request.ip_assignments]
+    )
+
+
+@mcp.tool()
+async def validate_routing_reachability(
+    topology: Dict[str, Any],
+    source_ip: str,
+    destination_ip: str,
+) -> Dict[str, Any]:
+    """
+    Validates L3 reachability between two IP addresses using full topology.
+
+    Uses graph theory (networkx) to simulate routing and find the shortest path
+    between devices, similar to OSPF behavior. Requires complete topology with
+    devices and links.
+    """
+    request = ValidateRoutingReachabilityRequest.model_validate(
+        {
+            "topology": topology,
+            "source_ip": source_ip,
+            "destination_ip": destination_ip,
+        }
+    )
+    return compute_routing_reachability(
+        request.topology.model_dump(),
+        request.source_ip,
+        request.destination_ip,
+    )
+
+
+@mcp.tool()
+async def calculate_vlan_assignments(
+    topology: Dict[str, Any], vlan_policy: Dict[str, Any]
+) -> Dict[str, Any]:
+    """Calculates port modes (access/trunk) based on topology and VLAN policy."""
+    request = VlanAssignmentRequest.model_validate(
+        {"topology": topology, "vlan_policy": vlan_policy}
+    )
+    return compute_vlan_assignments(request.topology, request.vlan_policy)
+
+
+@mcp.tool()
+async def validate_gateway_logic(
+    device: str, ip: str, gateway: str, topology: Dict[str, Any]
+) -> Dict[str, Any]:
+    """Validates if a device's gateway is valid and reachable on the L2 segment."""
+    request = ValidateGatewayRequest.model_validate(
+        {"device": device, "ip": ip, "gateway": gateway, "topology": topology}
+    )
+    return compute_gateway_logic(
+        request.device, str(request.ip), str(request.gateway), request.topology
+    )
+
+
+@mcp.tool()
+async def calculate_route_table(
+    directly_connected: List[Dict[str, Any]],
+    static_routes: List[Dict[str, Any]],
+) -> Dict[str, Any]:
+    """Builds and validates a device's routing table."""
+    request = RouteTableRequest.model_validate(
+        {
+            "directly_connected": directly_connected,
+            "static_routes": static_routes,
+        }
+    )
+    return compute_route_table(
+        request.directly_connected,
+        request.static_routes,
+    )
+
+
+@mcp.tool()
+async def calculate_configuration_order(
+    topology: Dict[str, Any], requirements: List[str]
+) -> Dict[str, Any]:
+    """Calculates the dependency order for network configuration tasks."""
+    request = ConfigOrderRequest.model_validate(
+        {"topology": topology, "requirements": requirements}
+    )
+    return compute_configuration_order(request.topology, request.requirements)
+
+
 __all__ = [
     "mcp",
     "calculate_subnet",
@@ -134,4 +239,10 @@ __all__ = [
     "validate_ip_in_subnet",
     "calculate_subnet_from_mask",
     "get_nth_usable_ip",
+    "detect_ip_conflicts",
+    "validate_routing_reachability",
+    "calculate_vlan_assignments",
+    "validate_gateway_logic",
+    "calculate_route_table",
+    "calculate_configuration_order",
 ]
