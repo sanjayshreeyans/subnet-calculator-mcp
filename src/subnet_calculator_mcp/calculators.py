@@ -500,8 +500,8 @@ def validate_gateway_logic(
         devices = topology.get("devices", [])
         gateway_device = next(
             (d for d in devices if any(
-                str(iface.get("ip", "")).startswith(device_gateway)
-                for iface in d.get("interfaces", [])
+                str(iface_data.get("ip", "")).startswith(device_gateway)
+                for iface_data in d.get("interfaces", {}).values()
             )),
             None,
         )
