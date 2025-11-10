@@ -160,7 +160,7 @@ async def validate_routing_reachability(
 ) -> Dict[str, Any]:
     """
     Validates L3 reachability between two IP addresses using full topology.
-    
+
     Uses graph theory (networkx) to simulate routing and find the shortest path
     between devices, similar to OSPF behavior. Requires complete topology with
     devices and links.

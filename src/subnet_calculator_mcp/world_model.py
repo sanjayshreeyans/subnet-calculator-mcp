@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import ipaddress
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 import networkx as nx
 
@@ -18,7 +18,7 @@ class NetworkGraph:
         Args:
             topology_data: Dict with 'devices' and 'links' keys
         """
-        self.graph = nx.Graph()
+        self.graph: nx.Graph = nx.Graph()
         self.device_data: Dict[str, Dict[str, Any]] = {}
         self._build_graph(topology_data)
 
@@ -160,7 +160,9 @@ class NetworkGraph:
                                 iface_ip = ipaddress.IPv4Address(iface_ip_str)
 
                             if iface_ip == target_ip:
-                                return node
+                                # Explicitly type node as str to avoid no-any-return
+                                node_str: str = str(node)
+                                return node_str
                         except (ValueError, ipaddress.AddressValueError):
                             continue
 

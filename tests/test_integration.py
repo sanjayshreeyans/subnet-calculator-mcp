@@ -80,9 +80,7 @@ async def test_validate_routing_reachability_tool() -> None:
         ],
     }
 
-    result = await validate_routing_reachability(
-        topology, "10.0.1.1", "10.0.2.1"
-    )
+    result = await validate_routing_reachability(topology, "10.0.1.1", "10.0.2.1")
     assert result["reachable"] is True
     assert result["hops"] == 1
 
@@ -160,7 +158,7 @@ async def test_mcp_registry_contains_new_tools() -> None:
     """FastMCP instance should expose all new network analysis tools."""
     tools = await mcp.list_tools()
     names = {tool.name for tool in tools}
-    
+
     expected_new_tools = {
         "detect_ip_conflicts",
         "validate_routing_reachability",
@@ -169,5 +167,5 @@ async def test_mcp_registry_contains_new_tools() -> None:
         "calculate_route_table",
         "calculate_configuration_order",
     }
-    
+
     assert expected_new_tools.issubset(names)

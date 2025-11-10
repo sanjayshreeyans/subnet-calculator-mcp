@@ -146,9 +146,7 @@ def test_validate_gateway_logic_valid_gateway() -> None:
             }
         ]
     }
-    result = validate_gateway_logic(
-        "PC1", "192.168.1.10/24", "192.168.1.1", topology
-    )
+    result = validate_gateway_logic("PC1", "192.168.1.10/24", "192.168.1.1", topology)
     assert result["gateway_valid"] is True
     assert result["gateway_reachable"] is True
 
@@ -158,9 +156,7 @@ def test_validate_gateway_logic_wrong_subnet() -> None:
     from subnet_calculator_mcp.calculators import validate_gateway_logic
 
     topology = {"devices": []}
-    result = validate_gateway_logic(
-        "PC1", "192.168.1.10/24", "192.168.2.1", topology
-    )
+    result = validate_gateway_logic("PC1", "192.168.1.10/24", "192.168.2.1", topology)
     assert result["gateway_valid"] is False
     assert result["gateway_reachable"] is False
     assert "not in the same subnet" in result["message"]
@@ -171,9 +167,7 @@ def test_validate_gateway_logic_network_address() -> None:
     from subnet_calculator_mcp.calculators import validate_gateway_logic
 
     topology = {"devices": []}
-    result = validate_gateway_logic(
-        "PC1", "192.168.1.10/24", "192.168.1.0", topology
-    )
+    result = validate_gateway_logic("PC1", "192.168.1.10/24", "192.168.1.0", topology)
     assert result["gateway_valid"] is False
     assert "network address" in result["message"]
 

@@ -276,31 +276,29 @@ def detect_ip_conflicts(
 ) -> dict[str, Any]:
     """
     Analyzes a list of IP assignments to find duplicates and subnet violations.
-    
+
     Args:
         ip_assignments: List of dicts with keys: device, interface, ip, mask
-        
+
     Returns:
         Dict containing conflicts, subnet_violations, gateway_conflicts
     """
     ip_map: dict[str, list[dict[str, str]]] = {}
     conflicts: list[dict[str, Any]] = []
     subnet_violations: list[dict[str, Any]] = []
-    
+
     for item in ip_assignments:
         ip_str = str(item["ip"])
         ip = ipaddress.IPv4Address(ip_str)
         mask = str(item["mask"])
-        
+
         # Create network from IP and mask
         network = ipaddress.IPv4Network(f"{ip_str}/{mask}", strict=False)
-        
+
         # Check if IP is network or broadcast address (subnet violation)
         is_network = ip == network.network_address
-        is_broadcast = (
-            network.prefixlen < 31 and ip == network.broadcast_address
-        )
-        
+        is_broadcast = network.prefixlen < 31 and ip == network.broadcast_address
+
         if is_network or is_broadcast:
             violation_type = "network_address" if is_network else "broadcast_address"
             subnet_violations.append(
@@ -314,7 +312,7 @@ def detect_ip_conflicts(
                     "message": f"IP {ip_str} is the {violation_type} of network {network}",
                 }
             )
-        
+
         # Check for duplicate IPs
         if ip_str in ip_map:
             # This is a conflict
@@ -329,8 +327,10 @@ def detect_ip_conflicts(
                 }
             )
         else:
-            ip_map[ip_str] = [{"device": item["device"], "interface": item["interface"]}]
-    
+            ip_map[ip_str] = [
+                {"device": item["device"], "interface": item["interface"]}
+            ]
+
     return {
         "conflicts": conflicts,
         "subnet_violations": subnet_violations,
@@ -346,30 +346,30 @@ def validate_routing_reachability(
 ) -> dict[str, Any]:
     """
     Simulates L3 routing path between two IPs using graph-based world model.
-    
+
     This uses networkx to build a full network graph and find the shortest path,
     simulating OSPF-style routing behavior.
-    
+
     Args:
         topology: Full network topology with devices and links
         source_ip: Source IP address
         destination_ip: Destination IP address
-        
+
     Returns:
         Dict with reachable status, path trace, and hop information
     """
     # Import here to avoid circular dependencies
     from .world_model import NetworkGraph
-    
+
     try:
         # Build the network graph
         net_graph = NetworkGraph(topology)
-        
+
         # Use graph pathfinding to determine reachability
         result = net_graph.find_l3_path(source_ip, destination_ip)
-        
+
         return result
-        
+
     except Exception as e:
         return {
             "reachable": False,
@@ -385,34 +385,38 @@ def calculate_vlan_assignments(
 ) -> dict[str, Any]:
     """
     Calculates port modes (access/trunk) based on topology and VLAN policy.
-    
+
     Args:
         topology: Network topology with devices and connections
         vlan_policy: VLAN policy rules
-        
+
     Returns:
         Dict with port_assignments and vlan_propagation info
     """
     port_assignments: list[dict[str, Any]] = []
     vlan_propagation: dict[str, Any] = {}
-    
+
     devices = topology.get("devices", [])
     connections = topology.get("connections", [])
-    
+
     # Analyze each connection to determine trunk vs access
     for conn in connections:
         device_a = conn.get("device_a", "")
         port_a = conn.get("port_a", "")
         device_b = conn.get("device_b", "")
         port_b = conn.get("port_b", "")
-        
+
         # Simple heuristic: switch-to-switch = trunk, switch-to-host = access
-        device_a_info = next((d for d in devices if d.get("name") == device_a), {})
-        device_b_info = next((d for d in devices if d.get("name") == device_b), {})
-        
+        device_a_info: dict[str, Any] = next(
+            (d for d in devices if d.get("name") == device_a), {}
+        )
+        device_b_info: dict[str, Any] = next(
+            (d for d in devices if d.get("name") == device_b), {}
+        )
+
         type_a = device_a_info.get("type", "host")
         type_b = device_b_info.get("type", "host")
-        
+
         if type_a == "switch" and type_b == "switch":
             mode = "trunk"
             allowed_vlans = vlan_policy.get("trunk_vlans", [1])
@@ -422,7 +426,7 @@ def calculate_vlan_assignments(
         else:
             mode = "access"
             allowed_vlans = [vlan_policy.get("default_vlan", 1)]
-        
+
         port_assignments.append(
             {
                 "device": device_a,
@@ -431,7 +435,7 @@ def calculate_vlan_assignments(
                 "vlans": allowed_vlans,
             }
         )
-        
+
         port_assignments.append(
             {
                 "device": device_b,
@@ -440,7 +444,7 @@ def calculate_vlan_assignments(
                 "vlans": allowed_vlans,
             }
         )
-    
+
     return {
         "port_assignments": port_assignments,
         "vlan_propagation": vlan_propagation,
@@ -453,13 +457,13 @@ def validate_gateway_logic(
 ) -> dict[str, Any]:
     """
     Validates if a device's gateway is valid and reachable on the L2 segment.
-    
+
     Args:
         device: Device name
         device_ip: Device IP with mask (e.g., "192.168.1.10/24")
         device_gateway: Gateway IP address
         topology: Network topology
-        
+
     Returns:
         Dict with gateway_valid, gateway_reachable, path_to_gateway
     """
@@ -467,10 +471,10 @@ def validate_gateway_logic(
         # Parse device IP and network
         device_network = ipaddress.IPv4Network(device_ip, strict=False)
         gateway_ip = ipaddress.IPv4Address(device_gateway)
-        
+
         # Check if gateway is in same subnet
         gateway_in_subnet = gateway_ip in device_network
-        
+
         if not gateway_in_subnet:
             return {
                 "gateway_valid": False,
@@ -478,14 +482,14 @@ def validate_gateway_logic(
                 "path_to_gateway": [],
                 "message": f"Gateway {device_gateway} is not in the same subnet as {device_ip}",
             }
-        
+
         # Check if gateway is not network or broadcast address
         is_network = gateway_ip == device_network.network_address
         is_broadcast = (
             device_network.prefixlen < 31
             and gateway_ip == device_network.broadcast_address
         )
-        
+
         if is_network or is_broadcast:
             violation = "network" if is_network else "broadcast"
             return {
@@ -494,36 +498,43 @@ def validate_gateway_logic(
                 "path_to_gateway": [],
                 "message": f"Gateway {device_gateway} is the {violation} address",
             }
-        
+
         # Check topology for L2 connectivity (same VLAN/segment)
         # Simplified: assume gateway is reachable if in same subnet
         devices = topology.get("devices", [])
         gateway_device = next(
-            (d for d in devices if any(
-                str(iface_data.get("ip", "")).startswith(device_gateway)
-                for iface_data in d.get("interfaces", {}).values()
-            )),
+            (
+                d
+                for d in devices
+                if any(
+                    str(iface_data.get("ip", "")).startswith(device_gateway)
+                    for iface_data in d.get("interfaces", {}).values()
+                )
+            ),
             None,
         )
-        
+
         if gateway_device:
             return {
                 "gateway_valid": True,
                 "gateway_reachable": True,
                 "path_to_gateway": [
                     {"device": device, "ip": device_ip},
-                    {"device": gateway_device.get("name", "Gateway"), "ip": device_gateway},
+                    {
+                        "device": gateway_device.get("name", "Gateway"),
+                        "ip": device_gateway,
+                    },
                 ],
                 "message": "Gateway is valid and reachable",
             }
-        
+
         return {
             "gateway_valid": True,
             "gateway_reachable": False,
             "path_to_gateway": [],
             "message": "Gateway is in correct subnet but device not found in topology",
         }
-        
+
     except (ValueError, ipaddress.AddressValueError) as e:
         return {
             "gateway_valid": False,
@@ -540,16 +551,16 @@ def calculate_route_table(
 ) -> dict[str, Any]:
     """
     Builds and validates a device's routing table.
-    
+
     Args:
         directly_connected: List of directly connected networks
         static_routes: List of static route configurations
-        
+
     Returns:
         Dict with routing_table, coverage_analysis, next_hop_validation
     """
     routing_table: list[dict[str, Any]] = []
-    
+
     # Add directly connected routes
     for route in directly_connected:
         network = route.get("network", "")
@@ -563,7 +574,7 @@ def calculate_route_table(
                 "admin_distance": 0,
             }
         )
-    
+
     # Add static routes
     for route in static_routes:
         network = route.get("network", "")
@@ -577,11 +588,11 @@ def calculate_route_table(
                 "admin_distance": route.get("admin_distance", 1),
             }
         )
-    
+
     # Simple validation: check for duplicate networks
     networks_seen = set()
     next_hop_validation: list[dict[str, Any]] = []
-    
+
     for route in routing_table:
         network = route["network"]
         if network in networks_seen:
@@ -601,13 +612,13 @@ def calculate_route_table(
                     "message": "Route appears valid",
                 }
             )
-    
+
     coverage_analysis = {
         "total_routes": len(routing_table),
         "connected_routes": len(directly_connected),
         "static_routes": len(static_routes),
     }
-    
+
     return {
         "routing_table": routing_table,
         "coverage_analysis": coverage_analysis,
@@ -621,11 +632,11 @@ def calculate_configuration_order(
 ) -> dict[str, Any]:
     """
     Calculates the dependency order for network configuration tasks.
-    
+
     Args:
         topology: Network topology
         requirements: List of configuration requirements
-        
+
     Returns:
         Dict with configuration_order as a list of steps
     """
@@ -642,19 +653,19 @@ def calculate_configuration_order(
         "acls": 9,
         "services": 10,
     }
-    
+
     configuration_order: list[dict[str, Any]] = []
-    
+
     # Sort requirements by priority
     sorted_requirements = sorted(
         requirements,
         key=lambda x: task_priority.get(x.lower().replace(" ", "_"), 99),
     )
-    
+
     for idx, requirement in enumerate(sorted_requirements, 1):
         task_key = requirement.lower().replace(" ", "_")
         priority = task_priority.get(task_key, 99)
-        
+
         configuration_order.append(
             {
                 "step": idx,
@@ -663,5 +674,5 @@ def calculate_configuration_order(
                 "description": f"Configure {requirement}",
             }
         )
-    
+
     return {"configuration_order": configuration_order}

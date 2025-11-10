@@ -2,7 +2,7 @@
 
 ## Overview
 
-This update adds **6 powerful new network analysis tools** to the subnet-calculator-mcp, transforming it from a basic subnet calculator into a comprehensive CyberPatriot network assistant.
+This update adds **6 powerful new network analysis tools** to the subnet-calculator-mcp, transforming it from a basic subnet calculator into a comprehensive network analysis assistant.
 
 ## New Capabilities
 
@@ -148,7 +148,7 @@ Following the established **3-layer pattern**:
 - **networkx >= 3.0**: Graph theory library for topology analysis
   - Pure Python implementation
   - Fast pathfinding algorithms
-  - Suitable for CyberPatriot-scale networks (dozens to hundreds of devices)
+  - Suitable for enterprise-scale networks (dozens to hundreds of devices)
 
 ## Testing
 
@@ -163,9 +163,9 @@ Following the established **3-layer pattern**:
 
 Run `examples/network_analysis_demo.py` to see all 6 tools in action with realistic scenarios.
 
-## CyberPatriot Use Cases
+## Use Cases
 
-These tools are specifically designed for CyberPatriot network configuration challenges:
+These tools are designed for network configuration and troubleshooting scenarios:
 
 1. **Pre-deployment Validation**: Use `detect_ip_conflicts` to scan configurations before applying them
 2. **Troubleshooting Connectivity**: Use `validate_routing_reachability` to diagnose "why can't PC A reach Server B"
@@ -179,7 +179,7 @@ These tools are specifically designed for CyberPatriot network configuration cha
 All tools are optimized for speed:
 - IP conflict detection: O(n) where n = number of IP assignments
 - Path finding: O((V+E) log V) using Dijkstra's algorithm (V=devices, E=links)
-- Typical CyberPatriot networks (50 devices, 100 links): <100ms per query
+- Typical enterprise networks (50 devices, 100 links): <100ms per query
 
 ## Migration Notes
 

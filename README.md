@@ -125,7 +125,7 @@ Set `command` to `"subnet-calculator-mcp"` if the binary is installed globally.
 
 - **Inputs**: `ip_assignments` (list of dicts with `device`, `interface`, `ip`, `mask`).
 - **Returns**: list of IP conflicts (duplicate assignments) and subnet violations (network/broadcast address usage).
-- **Use it for**: validating network configurations to prevent IP addressing conflicts in CyberPatriot scenarios.
+- **Use it for**: validating network configurations to prevent IP addressing conflicts in network deployments.
 
 ### `validate_routing_reachability`
 

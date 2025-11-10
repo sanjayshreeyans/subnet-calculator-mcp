@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
 
 from subnet_calculator_mcp.world_model import NetworkGraph
 

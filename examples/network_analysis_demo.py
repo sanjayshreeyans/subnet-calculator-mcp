@@ -260,7 +260,7 @@ def main() -> None:
     """Run all demonstrations."""
     print("\n" + "=" * 70)
     print("  Subnet Calculator MCP - Advanced Network Analysis Demo")
-    print("  Demonstrating 6 new CyberPatriot-focused tools")
+    print("  Demonstrating 6 new network analysis tools")
     print("=" * 70)
     
     demo_ip_conflict_detection()
